@@ -1,30 +1,14 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebase'; // make sure db is exported from firebase.js
-import { useNavigate } from 'react-router-dom';
-=======
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db, auth } from '../firebase'; 
+import { db, auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
->>>>>>> mariana-auth
+import { motion } from 'framer-motion';
+import '../styles/TaskInput.css';
 
 const TaskInput = () => {
   const [task, setTask] = useState('');
   const [priority, setPriority] = useState(1);
-<<<<<<< HEAD
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await addDoc(collection(db, 'tasks'), {
-        task,
-        priority,
-        timestamp: new Date(),
-=======
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timestamp, setTimestamp] = useState('');
@@ -58,7 +42,6 @@ const TaskInput = () => {
         task,
         priority,
         timestamp: new Date(timestamp),
->>>>>>> mariana-auth
       });
       alert('Task submitted successfully!');
       navigate('/dashboard');
@@ -68,23 +51,25 @@ const TaskInput = () => {
     }
   };
 
-<<<<<<< HEAD
-=======
   if (loading) {
-    return <div style={styles.container}>Loading...</div>;
+    return <div className="loading">Loading...</div>;
   }
 
->>>>>>> mariana-auth
   return (
-    <div style={styles.container}>
+    <motion.div 
+      className="task-input-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
       <h1>📝 Add a Task</h1>
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <form onSubmit={handleSubmit} className="task-form">
         <input
           type="text"
           placeholder="Task description"
           value={task}
           onChange={(e) => setTask(e.target.value)}
-          style={styles.input}
+          className="task-input"
           required
         />
         <input
@@ -92,63 +77,29 @@ const TaskInput = () => {
           placeholder="Priority (1-5)"
           value={priority}
           onChange={(e) => setPriority(Number(e.target.value))}
-          style={styles.input}
+          className="task-input"
           min="1"
           max="5"
           required
         />
-<<<<<<< HEAD
-=======
         <input
           type="datetime-local"
           value={timestamp}
           onChange={(e) => setTimestamp(e.target.value)}
-          style={{
-            ...styles.input,
-            backgroundColor: '#fef6ff', // pastel lavender
-            color: '#333',
-            fontSize: '1rem',
-          }}
+          className="task-input datetime-input"
           required
-
         />
->>>>>>> mariana-auth
-        <button type="submit" style={styles.button}>Add Task</button>
+        <motion.button 
+          type="submit" 
+          className="submit-button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Add Task
+        </motion.button>
       </form>
-    </div>
+    </motion.div>
   );
-};
-
-const styles = {
-  container: {
-    textAlign: 'center',
-    marginTop: '50px',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  input: {
-    margin: '10px',
-    padding: '10px',
-    width: '300px',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-<<<<<<< HEAD
-=======
-    fontSize: '1rem',
->>>>>>> mariana-auth
-  },
-  button: {
-    marginTop: '15px',
-    padding: '10px 20px',
-    backgroundColor: '#28a745',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
 };
 
 export default TaskInput;

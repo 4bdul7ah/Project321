@@ -1,0 +1,64 @@
+.task-input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #ffffff 0%, #f5f9ff 100%);
+}
+
+.task-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.task-input {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.task-input:focus {
+    outline: none;
+    border-color: #4299e1;
+}
+
+.datetime-input {
+    background-color: #fef6ff;
+    color: #333;
+}
+
+.submit-button {
+    padding: 12px;
+    background-color: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #3182ce;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 1.2rem;
+    color: #4a5568;
+} 
