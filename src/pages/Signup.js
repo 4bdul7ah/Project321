@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Signup with:', email, password);
-    // Add Firebase authentication logic here
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('User signed up:', userCredential.user);
+      navigate('/Dashboard');
+      // Optionally redirect or show success message
+    } catch (error) {
+      console.error('Signup error:', error.message);
+      alert(error.message); // show user-friendly error
+    }
   };
 
   return (
