@@ -20,12 +20,14 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Changes by Abdullah: Added auth state listener to get current user
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 setCurrentUser(user);
                 fetchTasks(user.uid);
-                migrateTasks(user.uid);
+                migrateTasks(user.uid);  // Migrate tasks from old structure to new nested structure
             } else {
+                // If not logged in, redirect to login
                 navigate('/login');
             }
             setLoading(false);
@@ -34,16 +36,21 @@ const Dashboard = () => {
         return () => unsubscribe();
     }, [navigate]);
 
+    // Function to migrate tasks from old structure to new nested structure
     const migrateTasks = async (userId) => {
         try {
+            // Get tasks from old structure that belong to this user
             const oldTasksQuery = query(collection(db, 'tasks'), where('userId', '==', userId));
             const querySnapshot = await getDocs(oldTasksQuery);
             
+            // If we found tasks in the old structure, let's migrate them
             const batch = writeBatch(db);
             let count = 0;
             
+            // Create a batch of operations
             for (const document of querySnapshot.docs) {
                 const data = document.data();
+                // Add to the new structure
                 const userTasksCollection = collection(db, 'users', userId, 'tasks');
                 await addDoc(userTasksCollection, {
                     task: data.task,
@@ -51,6 +58,7 @@ const Dashboard = () => {
                     timestamp: data.timestamp
                 });
                 
+                // Delete from old structure
                 const oldDocRef = doc(db, 'tasks', document.id);
                 batch.delete(oldDocRef);
                 count++;
@@ -59,6 +67,7 @@ const Dashboard = () => {
             if (count > 0) {
                 await batch.commit();
                 console.log(`Migrated ${count} tasks to new structure for user ${userId}`);
+                // Refresh tasks after migration
                 fetchTasks(userId);
             }
         } catch (error) {
@@ -68,6 +77,7 @@ const Dashboard = () => {
 
     const fetchTasks = async (userId) => {
         try {
+            // Using nested collection structure with userID/tasks
             const tasksCollection = collection(db, 'users', userId, 'tasks');
             const querySnapshot = await getDocs(tasksCollection);
             const taskList = querySnapshot.docs.map(doc => {
@@ -78,6 +88,7 @@ const Dashboard = () => {
                     timestamp: data.timestamp?.toDate?.() ?? null,
                 };
             });
+            // Sort tasks by priority (highest to lowest)
             taskList.sort((a, b) => b.priority - a.priority);
             setTasks(taskList);
         } catch (error) {
@@ -96,6 +107,7 @@ const Dashboard = () => {
 
     const handleDelete = async (id) => {
         try {
+            // Delete from nested collection
             await deleteDoc(doc(db, 'users', currentUser.uid, 'tasks', id));
             setTasks(tasks.filter(task => task.id !== id));
         } catch (error) {
