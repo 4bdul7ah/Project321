@@ -1,28 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { useNavigate, Link } from 'react-router-dom';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { motion } from 'framer-motion';
+import '../styles/Dashboard.css';
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const [tasks, setTasks] = useState([]);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     useEffect(() => {
         const fetchTasks = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tasks'));
                 const taskList = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setTasks(taskList);
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setTasks(taskList);
             } catch (error) {
-            console.error('Error fetching tasks:', error.message);
+                console.error('Error fetching tasks:', error.message);
             }   
         };
         fetchTasks();
@@ -30,95 +30,114 @@ const Dashboard = () => {
 
     const handleDelete = async (id) => {
         try {
-          await deleteDoc(doc(db, 'tasks', id));
-          setTasks(tasks.filter(task => task.id !== id));
+            await deleteDoc(doc(db, 'tasks', id));
+            setTasks(tasks.filter(task => task.id !== id));
         } catch (error) {
-          console.error('Error deleting task:', error.message);
+            console.error('Error deleting task:', error.message);
         }
     };
 
-    const handleLogout = async () => {
+    const handleLogoutClick = () => {
+        setShowLogoutConfirm(true);
+    };
+
+    const confirmLogout = async () => {
         try {
-          await signOut(auth);
-          console.log('User logged out');
-          navigate('/login'); // redirect after logout
+            await signOut(auth);
+            navigate('/login');
         } catch (error) {
-          console.error('Logout error:', error.message);
-          alert('Something went wrong logging out');
+            console.error('Logout error:', error.message);
         }
     };
-      return (
-        <div style={styles.container}>
-          <h1>🎉 Welcome to Your Dashboard!</h1>
-          <p>You’re logged in and ready to go! 💼</p>
-          <div style={styles.buttonContainer}>
-            <Link to="/add-task" style={styles.link}>➕ Add a New Task</Link>
-            <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
-          </div>
-          <h2 style={{ marginTop: '40px' }}>Your Tasks</h2>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-            {tasks.map(task => (
-            <li key={task.id} style={styles.taskItem}>
-            <strong>{task.task}</strong> — Priority: {task.priority}
-            <button onClick={() => handleDelete(task.id)} style={styles.deleteButton}>🗑️</button>
-        </li>
-        ))}
-        </ul>
-        </div>
-      );
+
+    const cancelLogout = () => {
+        setShowLogoutConfirm(false);
     };
 
-    const styles = {
-        container: {
-          textAlign: 'center',
-          marginTop: '50px',
-        },
-        buttonContainer: {
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '15px',
-          marginTop: '30px',
-        },
-        logoutButton: {
-          marginTop: '20px',
-          padding: '10px 20px',
-          backgroundColor: '#dc3545',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-        },
-        link: {
-          display: 'inline-block',
-          padding: '10px 20px',
-          backgroundColor: '#007bff',
-          color: '#fff',
-          textDecoration: 'none',
-          borderRadius: '5px',
-        },
+    return (
+        <motion.div
+            className="dashboard-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+        >
+            <div className="dashboard-content">
+                <div className="dashboard-header">
+                    <h2>🎉 Welcome to Your Dashboard!</h2>
+                    <p>You're logged in and ready to go! 💼</p>
+                </div>
 
-        taskItem: {
-            backgroundColor: '#f9f9f9',
-            padding: '10px',
-            margin: '10px auto',
-            width: '80%',
-            borderRadius: '5px',
-            textAlign: 'left',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        },
+                <div className="main-content">
+                    <Link to="/add-task" className="add-task-button">
+                        ➕ Add New Task
+                    </Link>
 
-        deleteButton: {
-            marginLeft: '15px',
-            padding: '5px 10px',
-            backgroundColor: '#dc3545',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            float: 'right'
-        }
+                    <div className="tasks-section">
+                        <h3>Your Tasks</h3>
+                        {tasks.length > 0 ? (
+                            <ul className="task-list">
+                                {tasks.map(task => (
+                                    <motion.li 
+                                        key={task.id}
+                                        className="task-item"
+                                        whileHover={{ x: 5 }}
+                                    >
+                                        <div className="task-info">
+                                            <strong>{task.task}</strong>
+                                            <span>Priority: {task.priority}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDelete(task.id)}
+                                            className="delete-button"
+                                        >
+                                            🗑️ Delete
+                                        </button>
+                                    </motion.li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="empty-state">No tasks yet. Add your first task!</p>
+                        )}
+                    </div>
+                </div>
 
-      };
+                <div className="logout-section">
+                    <motion.button
+                        onClick={handleLogoutClick}
+                        className="logout-button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        Logout
+                    </motion.button>
+                </div>
+
+                {/* Logout Confirmation Modal */}
+                {showLogoutConfirm && (
+                    <div className="confirmation-modal">
+                        <div className="modal-content">
+                            <h3>Are you sure you want to logout?</h3>
+                            <div className="modal-buttons">
+                                <button 
+                                    onClick={confirmLogout} 
+                                    className="confirm-button"
+                                >
+                                    Yes, Logout
+                                </button>
+                                <button 
+                                    onClick={cancelLogout} 
+                                    className="cancel-button"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+};
 
 export default Dashboard;

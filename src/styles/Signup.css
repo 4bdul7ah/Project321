@@ -1,0 +1,105 @@
+.signup-container {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: space-around;
+    padding: 2rem;
+    background: #f8fafc;
+  }
+  
+  .signup-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 450px;
+  }
+  
+  .signup-header h2 {
+    font-size: 2.5rem;
+    color: #1a365d;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+  
+  .signup-header p {
+    color: #4a5568;
+    font-size: 1.25rem;
+    max-width: 400px;
+  }
+  
+  .signup-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.3s ease;
+  }
+  
+  .signup-button:hover {
+    background: #3182ce;
+  }
+  
+  .signup-button:disabled {
+    background: #a5b4fc;
+    cursor: not-allowed;
+  }
+  
+  .signup-illustration {
+    max-width: 500px;
+    padding: 2rem;
+  }
+  
+  .signup-illustration img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+  }
+  
+  /* Reuse error styles from Login.css */
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #fff5f5;
+    color: #dc2626;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #dc2626;
+  }
+  
+  .error-icon {
+    font-size: 1.2rem;
+  }
+  
+  @media (max-width: 768px) {
+    .signup-container {
+      flex-direction: column;
+      padding: 1rem;
+    }
+    
+    .signup-card {
+      margin-bottom: 2rem;
+      padding: 2rem;
+    }
+    
+    .signup-illustration {
+      display: none;
+    }
+    
+    .signup-header h2 {
+      font-size: 2rem;
+    }
+    
+    .signup-header p {
+      font-size: 1.1rem;
+    }
+  }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebase'; // make sure db is exported from firebase.js
+import { db } from '../firebase'; 
 import { useNavigate } from 'react-router-dom';
 
 const TaskInput = () => {
