@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate, Link } from 'react-router-dom';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, query, where, writeBatch, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
 import '../styles/Dashboard.css';
@@ -11,26 +11,86 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [tasks, setTasks] = useState([]);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, 'tasks'));
-                const taskList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setTasks(taskList);
-            } catch (error) {
-                console.error('Error fetching tasks:', error.message);
-            }   
-        };
-        fetchTasks();
-    }, []);
+        // Changes by Abdullah: Added auth state listener to get current user
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setCurrentUser(user);
+                fetchTasks(user.uid);
+                migrateTasks(user.uid);  // Changes by Abdullah: Migrate tasks from old structure
+            } else {
+                // If not logged in, redirect to login
+                navigate('/login');
+            }
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [navigate]);
+
+    // Changes by Abdullah: Added function to migrate tasks from old structure to new nested structure
+    const migrateTasks = async (userId) => {
+        try {
+            // Get tasks from old structure that belong to this user
+            const oldTasksQuery = query(collection(db, 'tasks'), where('userId', '==', userId));
+            const querySnapshot = await getDocs(oldTasksQuery);
+            
+            // If we found tasks in the old structure, let's migrate them
+            const batch = writeBatch(db);
+            let count = 0;
+            
+            // Create a batch of operations
+            for (const document of querySnapshot.docs) {
+                const data = document.data();
+                // Add to the new structure
+                const userTasksCollection = collection(db, 'users', userId, 'tasks');
+                await addDoc(userTasksCollection, {
+                    task: data.task,
+                    priority: data.priority,
+                    timestamp: data.timestamp
+                });
+                
+                // Delete from old structure
+                const oldDocRef = doc(db, 'tasks', document.id);
+                batch.delete(oldDocRef);
+                count++;
+            }
+            
+            if (count > 0) {
+                await batch.commit();
+                console.log(`Migrated ${count} tasks to new structure for user ${userId}`);
+                // Refresh tasks after migration
+                fetchTasks(userId);
+            }
+        } catch (error) {
+            console.error('Error migrating tasks:', error);
+        }
+    };
+
+    const fetchTasks = async (userId) => {
+        try {
+            // Changes by Abdullah: Using nested collection structure with userID/tasks
+            const tasksCollection = collection(db, 'users', userId, 'tasks');
+            const querySnapshot = await getDocs(tasksCollection);
+            const taskList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            // Sort tasks by priority (highest to lowest) //Abdullah Changes.
+            taskList.sort((a, b) => b.priority - a.priority);
+            setTasks(taskList);
+        } catch (error) {
+            console.error('Error fetching tasks:', error.message);
+        }   
+    };
 
     const handleDelete = async (id) => {
         try {
-            await deleteDoc(doc(db, 'tasks', id));
+            // Changes by Abdullah: Delete from nested collection
+            await deleteDoc(doc(db, 'users', currentUser.uid, 'tasks', id));
             setTasks(tasks.filter(task => task.id !== id));
         } catch (error) {
             console.error('Error deleting task:', error.message);
@@ -53,6 +113,10 @@ const Dashboard = () => {
     const cancelLogout = () => {
         setShowLogoutConfirm(false);
     };
+
+    if (loading) {
+        return <div className="loading">Loading...</div>;
+    }
 
     return (
         <motion.div

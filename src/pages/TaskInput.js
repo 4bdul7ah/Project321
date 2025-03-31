@@ -1,17 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebase'; 
+import { db, auth } from '../firebase'; 
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const TaskInput = () => {
   const [task, setTask] = useState('');
   const [priority, setPriority] = useState(1);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        navigate('/login');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!currentUser) {
+      alert('You must be logged in to add tasks.');
+      navigate('/login');
+      return;
+    }
+    
     try {
-      await addDoc(collection(db, 'tasks'), {
+      const userTasksCollection = collection(db, 'users', currentUser.uid, 'tasks');
+      await addDoc(userTasksCollection, {
         task,
         priority,
         timestamp: new Date(),
@@ -23,6 +47,10 @@ const TaskInput = () => {
       alert('Something went wrong!');
     }
   };
+
+  if (loading) {
+    return <div style={styles.container}>Loading...</div>;
+  }
 
   return (
     <div style={styles.container}>
