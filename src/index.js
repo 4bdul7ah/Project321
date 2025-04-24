@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+<<<<<<< HEAD
+=======
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+>>>>>>> mariana-auth
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

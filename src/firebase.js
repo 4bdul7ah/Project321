@@ -18,4 +18,8 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app); // ✅ NEW
 
+<<<<<<< HEAD
 export { auth, db }; // ✅ NOW exporting both
+=======
+export { auth, db }; 
+>>>>>>> mariana-auth
