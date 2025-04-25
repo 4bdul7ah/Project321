@@ -20,6 +20,7 @@ import '../styles/Dashboard.css';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { getAISchedule } from '../utils/gemini';
 
 const localizer = momentLocalizer(moment);
 >>>>>>> mariana-auth
