@@ -5,13 +5,10 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import TaskInput from './pages/TaskInput';
-<<<<<<< HEAD
-=======
 import ForgotPassword from './pages/ForgotPassword';
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
->>>>>>> mariana-auth
 
 const App = () => {
   return (
@@ -22,12 +19,9 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/add-task" element={<TaskInput />} />
-<<<<<<< HEAD
-=======
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-     
 
->>>>>>> mariana-auth
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
       </Routes>
     </Router>
   );
