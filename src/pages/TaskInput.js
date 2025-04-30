@@ -3,6 +3,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
+import '../styles/TaskInput.css'; 
 
 const TaskInput = () => {
   const [task, setTask] = useState('');
@@ -27,19 +28,29 @@ const TaskInput = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!currentUser) {
       alert('You must be logged in to add tasks.');
       navigate('/login');
       return;
     }
-
+  
+    const selectedDate = new Date(timestamp);
+    const now = new Date();
+  
+    if (selectedDate < now) {
+      const proceed = window.confirm(
+        '⚠️ You selected a past date/time. Do you want to continue and save this task anyway?'
+      );
+      if (!proceed) return;
+    }
+  
     try {
       const userTasksCollection = collection(db, 'users', currentUser.uid, 'tasks');
       await addDoc(userTasksCollection, {
         task,
         priority,
-        timestamp: new Date(timestamp),
+        timestamp: selectedDate,
       });
       alert('Task submitted successfully!');
       navigate('/dashboard');
@@ -48,21 +59,21 @@ const TaskInput = () => {
       alert('Something went wrong!');
     }
   };
+  
 
   if (loading) {
-    return <div style={styles.container}>Loading...</div>;
+    return <div className="loading-message">Loading...</div>;
   }
 
   return (
-    <div style={styles.container}>
+    <div className="task-input-container">
       <h1>📝 Add a Task</h1>
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <form onSubmit={handleSubmit} className="task-input-form">
         <input
           type="text"
           placeholder="Task description"
           value={task}
           onChange={(e) => setTask(e.target.value)}
-          style={styles.input}
           required
         />
         <input
@@ -70,24 +81,25 @@ const TaskInput = () => {
           placeholder="Priority (1-5)"
           value={priority}
           onChange={(e) => setPriority(Number(e.target.value))}
-          style={styles.input}
           min="1"
           max="5"
           required
         />
+        <div className="priority-help">
+          <strong>Priority Guide:</strong><br />
+          5 – Very High (e.g. final exam)<br />
+          4 – High (e.g. project deadline)<br />
+          3 – Medium (e.g. weekly task)<br />
+          2 – Low (e.g. optional reading)<br />
+          1 – Very Low (e.g. ideas or notes)
+        </div>
         <input
           type="datetime-local"
           value={timestamp}
           onChange={(e) => setTimestamp(e.target.value)}
-          style={{
-            ...styles.input,
-            backgroundColor: '#fef6ff',
-            color: '#333',
-            fontSize: '1rem',
-          }}
           required
         />
-        <button type="submit" style={styles.button}>Add Task</button>
+        <button type="submit" className="task-submit-button">Add Task</button>
       </form>
     </div>
   );
