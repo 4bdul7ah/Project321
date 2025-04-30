@@ -86,14 +86,20 @@ const Dashboard = () => {
             console.error('Error fetching tasks:', error.message);
         }
     };
-
+    //the way tasks occupy the calendar will change (this is for now)
     const calendarEvents = tasks
         .filter(task => task.timestamp)
-        .map(task => ({
-            title: task.task,
-            start: task.timestamp,
-            end: new Date(new Date(task.timestamp).getTime() + 60 * 60 * 1000),
-        }));
+        .map(task => {
+        const end = task.timestamp;
+        const start = new Date(end);
+        start.setHours(0, 0, 0, 0); // Set to beginning of the day for now
+
+        return {
+        title: task.task,
+        start,
+        end,
+        };
+    });
 
     const handleDelete = async (id) => {
         try {
