@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read/write their own data
+    match /users/{userId} {
+      // Basic user document access - allow authenticated users to create any user document
+      allow read, write: if request.auth != null;
+      
+      // Access to user's tasks collection
+      match /tasks/{taskId} {
+        // Allow any authenticated user to read/write
+        allow read, write: if request.auth != null;
+      }
+      
+      // Allow any authenticated user to write to incomingSharedTasks collection
+      match /incomingSharedTasks/{taskId} {
+        // Allow ANY authenticated user to create, read, update, delete
+        allow read, write: if request.auth != null;
+      }
+      
+      // Other nested collections
+      match /{collection}/{document=**} {
+        allow read, write: if request.auth != null;
+      }
+    }
+    
+    // Task sharing history
+    match /taskShares/{shareId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Reminders collection
+    match /reminders/{reminderId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+} 

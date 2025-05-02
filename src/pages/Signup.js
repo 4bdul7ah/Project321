@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import '../styles/Signup.css';
 
 const Signup = () => {
@@ -13,40 +15,50 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignup = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
+    // Validate that passwords match
     if (password !== confirmPassword) {
       setError("Passwords don't match");
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard'); // Redirect after successful signup
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await createUserDocument(user); // Create the user document in Firestore
+      navigate('/dashboard');
     } catch (err) {
-      let friendlyError = 'Signup failed. Please try again.';
-
-      switch (err.code) {
-        case 'auth/email-already-in-use':
-          friendlyError = 'Email already in use.';
-          break;
-        case 'auth/invalid-email':
-          friendlyError = 'Please enter a valid email.';
-          break;
-        case 'auth/weak-password':
-          friendlyError = 'Password should be at least 6 characters.';
-          break;
-        default:
-          friendlyError = 'An unexpected error occurred.';
-          console.error('Signup error:', err); // Log technical errors
+      let friendlyError = "An error occurred during signup. Please try again.";
+      if (err.code === 'auth/email-already-in-use') {
+        friendlyError = "This email is already in use. Try logging in instead.";
+      } else if (err.code === 'auth/weak-password') {
+        friendlyError = "Password is too weak. Please choose a stronger password.";
+      } else if (err.code === 'auth/invalid-email') {
+        friendlyError = "Invalid email address.";
       }
-
       setError(friendlyError);
       setIsLoading(false);
+    }
+  };
+
+  const createUserDocument = async (user) => {
+    if (!user) return;
+    
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, {
+        email: user.email,
+        displayName: user.displayName || '',
+        createdAt: new Date()
+      });
+      console.log("User document created in Firestore");
+    } catch (error) {
+      console.error("Error creating user document:", error);
     }
   };
 
@@ -79,7 +91,7 @@ const Signup = () => {
           </motion.div>
         )}
 
-        <form onSubmit={handleSignup}>
+        <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label htmlFor="email">Email</label>
             <input
