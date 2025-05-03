@@ -115,6 +115,9 @@ const Signup = () => {
               required
               minLength="6"
             />
+            <p className="password-requirement">
+             ℹ️ Password must be at least 6 characters long.
+            </p>
           </div>
 
           <div className="input-group">
