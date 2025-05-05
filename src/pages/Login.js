@@ -31,9 +31,6 @@ const Login = () => {
         case 'auth/invalid-email':
           friendlyError = "Please enter a valid email address.";
           break;
-        case 'auth/user-disabled':
-          friendlyError = "This account has been disabled.";
-          break;
         case 'auth/user-not-found':
         case 'auth/wrong-password':
           friendlyError = "Invalid email or password.";
@@ -72,7 +69,6 @@ const Login = () => {
       console.error("Error creating user document:", error);
     }
   };
-
   return (
     <motion.div
       className="login-container"
