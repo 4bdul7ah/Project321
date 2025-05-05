@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard';
 import TaskInput from './pages/TaskInput';
 import ForgotPassword from './pages/ForgotPassword';
 
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+
 const App = () => {
   return (
     <Router>
@@ -16,7 +19,9 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/add-task" element={<TaskInput />} />
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
+
       </Routes>
     </Router>
   );

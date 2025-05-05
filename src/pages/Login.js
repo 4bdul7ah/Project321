@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import '../styles/Login.css'; 
 
 const Login = () => {
@@ -19,6 +21,8 @@ const Login = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      const user = auth.currentUser;
+      createUserDocument(user);
       navigate('/dashboard');  // Redirect to dashboard on successful login
     } catch (err) {
       let friendlyError = "Login failed. Please try again.";
@@ -47,6 +51,26 @@ const Login = () => {
       setError(friendlyError);
       setIsLoading(false);
     }    
+  };
+
+  const createUserDocument = async (user) => {
+    if (!user) return;
+    
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(userDocRef);
+      
+      if (!docSnap.exists()) {
+        await setDoc(userDocRef, {
+          email: user.email,
+          displayName: user.displayName || '',
+          createdAt: new Date()
+        });
+        console.log("User document created in Firestore");
+      }
+    } catch (error) {
+      console.error("Error creating user document:", error);
+    }
   };
 
   return (
