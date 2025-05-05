@@ -12,6 +12,9 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { shareTaskWithUser, getTaskAnalytics, trackTaskCompletion } from '../utils/taskUtils';
+import { getChatSchedule } from '../utils/gemini';
+
+
 
 const localizer = momentLocalizer(moment);
 
@@ -41,6 +44,9 @@ const Dashboard = () => {
     const [showInbox, setShowInbox] = useState(false);
     const [archivedTasks, setArchivedTasks] = useState([]);
     const [showArchived, setShowArchived] = useState(false);
+    const [aiSchedule, setAiSchedule] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -524,7 +530,37 @@ const Dashboard = () => {
             console.error('Error unarchiving task:', error);
         }
     };
-
+      // ───────────────────────────────────────────────────────────────
+  // 1) Function to call your Gemini helper and set state
+  const handleGenerateAISchedule = async () => {
+    if (!tasks.length) return;
+     setIsGenerating(true);
+ 
+     // Massage your tasks into the API’s expected payload shape:
+     const payload = tasks.map(t => ({
+       name: t.task,
+       dueDate: (t.timestamp instanceof Date
+         ? t.timestamp.toISOString().split('T')[0]
+         : t.timestamp),
+       weight: t.priority
+     }));
+ 
+     try {
+       const scheduleText = await getChatSchedule(payload);
+       setAiSchedule(scheduleText);
+     } catch (err) {
+       console.error('Failed to get AI schedule', err);
+       setAiSchedule('Error generating schedule');
+     } finally {
+       setIsGenerating(false);
+     }
+   };
+   // ───────────────────────────────────────────────────────────────
+ 
+   // 2) Re-run the AI call any time your tasks list changes:
+   useEffect(() => {
+     handleGenerateAISchedule();
+   }, [tasks]);
     if (loading) {
         return <div className="loading">Loading...</div>;
     }
@@ -560,6 +596,21 @@ const Dashboard = () => {
                         >
                             📬 Inbox {pendingSharedTasks.length > 0 && <span className="notification-badge">{pendingSharedTasks.length}</span>}
                         </button>
+                        <button
+                          className="ai-schedule-button"
+                          onClick={handleGenerateAISchedule}
+                          disabled={isGenerating}
+                        >
+                          {isGenerating ? 'Generating…' : '🤖 AI Schedule'}
+                        </button>
+
+                        {aiSchedule && (
+                      <div className="ai-schedule-output">
+                        <h3>My AI-Generated Schedule</h3>
+                        <pre>{aiSchedule}</pre>
+                              </div>
+                        )}
+                        
                     </div>
                     
                     {showStats && (
