@@ -1223,4 +1223,15 @@
     100% { transform: scale(1); }
 }
 
+.minimize-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
   
+.minimize-button:hover {
+    text-decoration: underline;
+}

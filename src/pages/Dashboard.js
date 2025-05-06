@@ -46,6 +46,7 @@ const Dashboard = () => {
     const [showArchived, setShowArchived] = useState(false);
     const [aiSchedule, setAiSchedule] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isAiScheduleVisible, setIsAiScheduleVisible] = useState(true);
 
 
     useEffect(() => {
@@ -614,10 +615,20 @@ const Dashboard = () => {
                         </button>
 
                         {aiSchedule && (
-                      <div className="ai-schedule-output">
-                        <h3>My AI-Generated Schedule</h3>
-                        <pre>{aiSchedule}</pre>
-                              </div>
+                            <div className="ai-schedule-output">
+                                <div className="ai-schedule-header">
+                                    <h3>My AI-Generated Schedule</h3>
+                                    <button 
+                                        className="minimize-button" 
+                                        onClick={() => setIsAiScheduleVisible(!isAiScheduleVisible)}
+                                    >
+                                        {isAiScheduleVisible ? 'Minimize' : 'Expand'}
+                                    </button>
+                                </div>
+                                {isAiScheduleVisible && (
+                                    <pre>{aiSchedule}</pre>
+                                )}
+                            </div>
                         )}
                         
                     </div>
