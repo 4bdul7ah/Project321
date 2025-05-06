@@ -1,38 +1,48 @@
+// src/utils/gemini.js
 import axios from 'axios';
 
-export async function getAISchedule(tasks) {
+export async function getChatSchedule(tasks) {
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('API key is missing. Please check your environment variables.');
+  }
 
-  const prompt = `Make a weekly study schedule using these tasks:\n` + tasks.map(t =>
-    `- ${t.name}, due on ${t.dueDate}, worth ${t.weight}%`
-  ).join('\n');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-  try {
-    const response = await axios.post(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey,
+  // Generate the task list as a single string
+  const taskDescriptions = tasks
+    .map((t, i) => `${i + 1}. ${t.name} (due ${t.dueDate}, priority ${t.weight})`)
+    .join('\n');
+
+  // Construct the payload to match the API's expected structure
+  const body = {
+    contents: [
       {
-        contents: [
+        parts: [
           {
-            role: "user",
-            parts: [{ text: prompt }]
+            text: `Generate a schedule for the following tasks:\n\n${taskDescriptions}`
           }
         ]
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
       }
-    );
+    ]
+  };
 
-    if (response.data && response.data.candidates && response.data.candidates.length > 0) {
-      return response.data.candidates[0].content.parts[0].text;
+  try {
+    const { data } = await axios.post(url, body, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    // Extract and return the text content
+    const content = data.candidates?.[0]?.content;
+    if (typeof content === 'string') {
+      return content;
+    } else if (content?.parts) {
+      return content.parts.map(part => part.text).join(''); // Combine parts into a single string
     } else {
-      console.error("No valid response from Gemini.");
-      return "Couldn't generate a schedule.";
+      return 'No valid response from AI.';
     }
-  } catch (err) {
-    console.error("Gemini API Error:", err.message);
-    return "Error generating schedule.";
+  } catch (error) {
+    console.error('Error in getChatSchedule:', error.response?.data || error.message);
+    throw new Error('Failed to fetch schedule from AI API.');
   }
 }
