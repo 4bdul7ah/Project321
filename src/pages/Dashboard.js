@@ -533,27 +533,36 @@ const Dashboard = () => {
       // ───────────────────────────────────────────────────────────────
   // 1) Function to call your Gemini helper and set state
   const handleGenerateAISchedule = async () => {
-    if (!tasks.length) return;
-     setIsGenerating(true);
- 
-     // Massage your tasks into the API’s expected payload shape:
-     const payload = tasks.map(t => ({
-       name: t.task,
-       dueDate: (t.timestamp instanceof Date
-         ? t.timestamp.toISOString().split('T')[0]
-         : t.timestamp),
-       weight: t.priority
-     }));
- 
-     try {
-       const scheduleText = await getChatSchedule(payload);
-       setAiSchedule(scheduleText);
-     } catch (err) {
-       console.error('Failed to get AI schedule', err);
-       setAiSchedule('Error generating schedule');
-     } finally {
-       setIsGenerating(false);
-     }
+    if (!tasks.length) {
+        setAiSchedule('No tasks available to generate a schedule.');
+        setIsGenerating(false);
+        return;
+    }
+
+    setIsGenerating(true);
+
+    // prepare the payload for the API
+    const payload = tasks.map(t => ({
+        name: t.task,
+        dueDate: t.timestamp instanceof Date
+            ? t.timestamp.toISOString().split('T')[0]
+            : new Date(t.timestamp).toISOString().split('T')[0],
+        weight: t.priority || 1 // Default weight if priority is missing
+    }));
+
+    try {
+        console.log('Sending payload to AI API:', payload); // Debugging log
+        const scheduleText = await getChatSchedule(payload);
+        setAiSchedule(scheduleText || 'No schedule generated.');
+    } 
+    catch (err) {
+        console.error('Failed to generate AI schedule:', err);
+        setAiSchedule('Error generating schedule. Please try again later.');
+    } 
+    finally {
+        setIsGenerating(false);
+    }
+
    };
    // ───────────────────────────────────────────────────────────────
  
