@@ -15,7 +15,7 @@ jest.mock('firebase/auth', () => ({
 // Mock Firebase Firestore (using your improved mock)
 jest.mock('firebase/firestore', () => ({
     ...jest.requireActual('firebase/firestore'),
-    doc: jest.fn((path, id) => `${path}/${id}`),
+    doc: jest.fn((db, path, id) => `${path}/${id}`),
     getDoc: jest.fn(),
     setDoc: jest.fn(),
     collection: jest.fn((path) => path),
@@ -165,4 +165,48 @@ describe('Signup Component', () => {
     setDocSpy.mockRestore();
     getDocSpy.mockRestore();
   });  
+  test('logs error to console if user document creation fails', async () => {
+    // Mock user creation to succeed
+    createUserWithEmailAndPassword.mockResolvedValue({
+      user: { uid: 'uid123', email: 'test@example.com' }
+    });
+  
+    // Force setDoc to throw an error
+    const error = new Error('Firestore write failed');
+    setDoc.mockRejectedValue(error);
+  
+    // Spy on console.error
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'password123' } });
+  
+    fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
+  
+    await waitFor(() => {
+      expect(setDoc).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error creating user document:',
+        error
+      );
+    });
+  
+    consoleErrorSpy.mockRestore();
+  }); 
+  test('catches and displays invalid email error from Firebase', async () => {
+    createUserWithEmailAndPassword.mockRejectedValue({ code: 'auth/invalid-email' });
+  
+    // Provide a syntactically valid but fake email so it bypasses client-side validation
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'invalid@email' } });
+    fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'validPass123' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'validPass123' } });
+  
+    fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
+  
+    await waitFor(() => {
+      expect(createUserWithEmailAndPassword).toHaveBeenCalled();
+      expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+    });
+  });   
 });

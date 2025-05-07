@@ -1161,6 +1161,79 @@
     background: #3182ce;
 }
 
+.ai-schedule-output {
+    max-height: 400px; 
+    overflow-y: auto;         
+    white-space: pre-wrap;    
+    word-wrap: break-word;     
+    padding: 1rem;
+    background: #fefeff;
+    border: 1px solid #205fdc;
+    border-radius: 0.5rem;
+  }
+
+  .ai-schedule-button {
+    background: #2c7a7b;      
+    color: rgb(255, 255, 255);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .ai-schedule-button:hover {
+    background: #285e61; 
+  }
+
+.ai-schedule-container {
+    margin-top: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+  }
+  
+
+  .ai-schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+
+  .ai-toggle-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0;
+    line-height: 1;
+    color: #4a5568;
+    transition: color 0.2s;
+  }
+  
+  .ai-toggle-button:hover {
+    color: #2d3748;
+  }
+  
+ 
+  .ai-schedule-output {
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding: 1rem;
+    background: #f9fafb;
+  }
+  
+
+  .ai-schedule-container.collapsed .ai-schedule-output {
+    display: none;
+  }
+
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
