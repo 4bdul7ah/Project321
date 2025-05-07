@@ -432,20 +432,21 @@ describe('TaskInput Component', () => {
       expect(callArgs).not.toHaveProperty('timestamp');
     });
   });
-  it('should add task without due date when timestamp is not provided', async () => {
+  it('should add task with due date when timestamp is provided', async () => {
     renderTaskInput();
     
     await waitFor(() => expect(screen.getByText('Add a New Task')).toBeInTheDocument());
     
-    // Fill out the form without due date
-    fireEvent.change(screen.getByPlaceholderText('Enter task'), { target: { value: 'Task without Due Date' } });
+    // Fill out the form with due date
+    fireEvent.change(screen.getByPlaceholderText('Enter task'), { target: { value: 'Task with Due Date' } });
+    fireEvent.change(screen.getByPlaceholderText('Due date'), { target: { value: '2025-12-31' } });
     
     // Submit the form
     fireEvent.click(screen.getByText('Add Task'));
     
     await waitFor(() => {
       const callArgs = addDoc.mock.calls[0][1];
-      expect(callArgs).not.toHaveProperty('timestamp');
+      expect(callArgs).toHaveProperty('timestamp');
     });
   });
   it('should not set reminder if date is provided but time is missing', async () => {
