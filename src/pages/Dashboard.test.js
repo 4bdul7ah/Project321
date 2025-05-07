@@ -6,11 +6,7 @@ import Dashboard from './Dashboard';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import * as firestore from 'firebase/firestore';
-import {
-  getTaskAnalytics,
-  trackTaskCompletion,
-  shareTaskWithUser
-} from '../utils/taskUtils';
+import {getTaskAnalytics, trackTaskCompletion, shareTaskWithUser} from '../utils/taskUtils';
 
 jest.mock('../firebase', () => ({
     auth: {},
