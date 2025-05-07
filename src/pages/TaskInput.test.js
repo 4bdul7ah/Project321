@@ -37,6 +37,10 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate
 }));
 
+beforeAll(() => {
+  window.alert = jest.fn();
+});
+
 describe('TaskInput Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,6 +69,18 @@ describe('TaskInput Component', () => {
       <MemoryRouter initialEntries={['/task-input']}>
         <Routes>
           <Route path="/task-input" element={<TaskInput />} />
+          <Route path="/dashboard" element={<div>Dashboard</div>} />
+          <Route path="/login" element={<div>Login</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
+
+  const renderEditTaskInput = () => {
+    render(
+      <MemoryRouter initialEntries={['/task-input/123']}>
+        <Routes>
+          <Route path="/task-input/:id" element={<TaskInput />} />
           <Route path="/dashboard" element={<div>Dashboard</div>} />
           <Route path="/login" element={<div>Login</div>} />
         </Routes>
