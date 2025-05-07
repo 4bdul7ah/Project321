@@ -744,6 +744,23 @@
     background-color: #d32f2f;
 }
 
+.edit-button {
+    background-color: #6c757d;    
+    color: white;
+    border: none;
+    border-radius: 0.25rem;       
+    padding: 6px 12px;
+    min-width: 4rem;  
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-left: 0.2rem;
+}
+
+.edit-button:hover {
+    background-color: #5a6268;    
+}
+
 .no-tasks {
     text-align: center;
     color: #666;

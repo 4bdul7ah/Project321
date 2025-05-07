@@ -19,7 +19,7 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/add-task" element={<TaskInput />} />
-
+        <Route path="/add-task/:id"   element={<TaskInput />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
       </Routes>

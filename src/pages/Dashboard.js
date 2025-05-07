@@ -48,7 +48,7 @@ const Dashboard = () => {
                 setCurrentUser(user);
                 fetchTasks(user.uid);
                 migrateTasks(user.uid);
-                fetchCategories(user.uid);
+                //fetchCategories(user.uid);
             } else {
                 navigate('/login');
             }
@@ -63,6 +63,12 @@ const Dashboard = () => {
         applyFilters();
         updateStats();
     }, [tasks, selectedCategory, selectedTag]);
+
+    // rebuild the category list any time tasks change
+    useEffect(() => {
+        const catSet = new Set(tasks.map(t => t.category || 'uncategorized'));
+        setCategories(['all', ...catSet]);
+    }, [tasks]);
 
     useEffect(() => {
         if (currentUser) {
@@ -81,18 +87,6 @@ const Dashboard = () => {
             fetchArchivedTasks();
         }
     }, [showArchived, currentUser]);
-
-    const fetchCategories = async (userId) => {
-        try {
-            const categoriesCollection = collection(db, 'users', userId, 'categories');
-            const querySnapshot = await getDocs(categoriesCollection);
-            
-            const categoriesList = querySnapshot.docs.map(doc => doc.data().name);
-            setCategories(['all', ...categoriesList]);
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-        }
-    };
 
     const migrateTasks = async (userId) => {
         try {
@@ -539,7 +533,7 @@ const Dashboard = () => {
         >
             <div className="dashboard-content">
                 <div className="dashboard-header">
-                    <h2>🎉 Welcome to Your Dashboard!</h2>
+                    <h2>🎉 Welcome to Your Calendar!</h2>
                     <p>You're logged in and ready to go! 💼</p>
                 </div>
 
@@ -743,6 +737,13 @@ const Dashboard = () => {
                                                     >
                                                         🗑️ Delete
                                                     </button>
+                                                    <button
+                                                        onClick={() => navigate(`/add-task/${task.id}`)}
+                                                        className="edit-button"
+                                                    >
+                                                        ✏️ Edit
+                                                    </button>
+                
                                                 </div>
                                             </motion.li>
                                         ))}

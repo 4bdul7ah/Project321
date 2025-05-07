@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore'; //added this 
 import { db, auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom'; //added this 
 import { onAuthStateChanged } from 'firebase/auth';
 import { setTaskReminder } from '../utils/taskUtils';
 import { Timestamp } from 'firebase/firestore';
@@ -21,6 +23,8 @@ const TaskInput = () => {
   const [reminderMessage, setReminderMessage] = useState({ type: '', message: '' });
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [customCategory, setCustomCategory] = useState('');
+  const { id } = useParams();
+  const isEditing = Boolean(id);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +40,46 @@ const TaskInput = () => {
 
     return () => unsubscribe();
   }, [navigate]);
+
+  //added this
+  useEffect(() => {
+    if (!isEditing || !currentUser) return;
+  
+    const loadTask = async () => {
+      try {
+        const ref  = doc(db, 'users', currentUser.uid, 'tasks', id);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          alert('Task not found');
+          return navigate('/dashboard');
+        }
+        const data = snap.data();
+        setTask(data.task);
+        setPriority(data.priority);
+        setCategory(data.category);
+        setTags((data.tags || []).join(', '));
+        if (data.timestamp?.toDate) {
+          const dt = data.timestamp.toDate();
+          // preserve local date without timezone shift
+          const y = dt.getFullYear();
+          const m = String(dt.getMonth() + 1).padStart(2, '0');
+          const d = String(dt.getDate()).padStart(2, '0');
+          setTimestamp(`${y}-${m}-${d}`);
+        }
+        if (data.reminderDate) {
+          setReminderDate(data.reminderDate);
+        }
+        if (data.reminderTime) {
+          setReminderTime(data.reminderTime);
+        }
+      } catch (err) {
+        console.error('Error loading task for edit:', err);
+      }
+    };
+  
+    loadTask();
+  }, [isEditing, currentUser, id, navigate]);
+  
 
   const fetchUserCategories = async (userId) => {
     try {
@@ -75,22 +119,39 @@ const TaskInput = () => {
             tags: tagArray,
             archived: false,  // Explicitly set archived to false for new tasks
         };
-        
-        // Only add timestamp if it's provided
+
+        if (reminderDate) taskData.reminderDate = reminderDate;
+        if (reminderTime) taskData.reminderTime = reminderTime;
+
         if (timestamp) {
-            taskData.timestamp = Timestamp.fromDate(new Date(timestamp));
+          const [y, m, d] = timestamp.split('-').map(Number);
+          const localDate = new Date(y, m - 1, d);
+          taskData.timestamp = Timestamp.fromDate(localDate);
         }
         
-        const docRef = await addDoc(userTasksCollection, taskData);
+        // Only add timestamp if it's provided
+        let taskId;
+        if (isEditing) {
+          // EDIT existing task
+          const ref = doc(db, 'users', currentUser.uid, 'tasks', id);
+          await updateDoc(ref, taskData);
+          taskId = id;              
+        } else {
+          // CREATE new task
+          const ref = await addDoc(userTasksCollection, taskData);
+          taskId = ref.id;          
+        } 
         
         // Update categories list if it's a new category
         if (category && !categories.includes(category)) {
-            setCategories([...categories, category]);
+            const categoryRef = collection(db, 'users', currentUser.uid, 'categories');
+            await addDoc(categoryRef, { name: category });
+            setCategories(prev => [...prev, category]);
         }
         
         // Set reminder if date and time are provided
         if (reminderDate && reminderTime) {
-            await handleAddReminder(docRef.id);
+          await handleAddReminder(taskId);
         }
 
         // Reset form
@@ -101,7 +162,7 @@ const TaskInput = () => {
         setTags('');
         setReminderDate('');
         setReminderTime('');
-        
+        navigate('/dashboard');
         alert('Task submitted successfully!');
     } catch (error) {
         console.error('Error adding task:', error);
@@ -156,7 +217,7 @@ const TaskInput = () => {
   return (
     <div className="task-input-container">
       <button className="close-button" onClick={navigateBack}>✕</button>
-      <h2>Add a New Task</h2>
+      <h2>{isEditing ? 'Edit Task' : 'Add a New Task'}</h2>
       <form onSubmit={handleSubmit} className="task-form">
         <div className="form-group">
           <label>Task:</label>
@@ -274,11 +335,11 @@ const TaskInput = () => {
         </div>
 
         <button type="submit" className="add-task-btn">
-          Add Task
+          {isEditing ? 'Save Changes' : 'Add Task'}
         </button>
       </form>
     </div>
   );
 };
 
-export default TaskInput;
+ export default TaskInput;

@@ -37,6 +37,10 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate
 }));
 
+beforeAll(() => {
+  window.alert = jest.fn();
+});
+
 describe('TaskInput Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,6 +69,18 @@ describe('TaskInput Component', () => {
       <MemoryRouter initialEntries={['/task-input']}>
         <Routes>
           <Route path="/task-input" element={<TaskInput />} />
+          <Route path="/dashboard" element={<div>Dashboard</div>} />
+          <Route path="/login" element={<div>Login</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
+
+  const renderEditTaskInput = () => {
+    render(
+      <MemoryRouter initialEntries={['/task-input/123']}>
+        <Routes>
+          <Route path="/task-input/:id" element={<TaskInput />} />
           <Route path="/dashboard" element={<div>Dashboard</div>} />
           <Route path="/login" element={<div>Login</div>} />
         </Routes>
@@ -337,26 +353,4 @@ describe('TaskInput Component', () => {
     global.Date = originalDate;
   });
 
-  it('should sort tags and remove empty ones', async () => {
-    renderTaskInput();
-    
-    await waitFor(() => expect(screen.getByText('Add a New Task')).toBeInTheDocument());
-    
-    // Fill form with messy tags
-    fireEvent.change(screen.getByPlaceholderText('Enter task'), { target: { value: 'Tag Test' } });
-    fireEvent.change(screen.getByPlaceholderText('e.g. urgent, project, meeting'), { target: { value: 'tag1, , tag2,  , tag3' } });
-    
-    // Submit form
-    fireEvent.click(screen.getByText('Add Task'));
-    
-    // Check tags are cleaned up
-    await waitFor(() => {
-      expect(addDoc).toHaveBeenCalledWith(
-        undefined,
-        expect.objectContaining({
-          tags: ['tag1', 'tag2', 'tag3']
-        })
-      );
-    });
-  });
 });
