@@ -307,6 +307,7 @@ const TaskInput = () => {
             value={timestamp}
             onChange={(e) => setTimestamp(e.target.value)}
             min={new Date().toISOString().split('T')[0]}
+            placeholder="Due date"
           />
         </div>
 
